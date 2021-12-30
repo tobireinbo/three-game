@@ -13,7 +13,7 @@ import { KeyableObject, Topics } from "../../common";
 
 export type FBXComponentParams = {
   path: string;
-  files: { model: string; animations: { action: string; file: string }[] };
+  files: { model: string; animations?: { action: string; file: string }[] };
   scale: number;
   scene: Scene;
   offset: Vector3;
@@ -54,27 +54,29 @@ export class FBXComponent extends Component {
       this._model = fbx;
       this._params.scene.add(this._model);
 
-      this.mixer = new AnimationMixer(this._model);
-      this._loadingManager = new LoadingManager();
-      this._loadingManager.onLoad = () => {
-        this.fireHandlers({ topic: Topics.animationLoaded, value: true });
-      };
+      if (this._params.files.animations) {
+        this.mixer = new AnimationMixer(this._model);
+        this._loadingManager = new LoadingManager();
+        this._loadingManager.onLoad = () => {
+          this.fireHandlers({ topic: Topics.animationLoaded, value: true });
+        };
 
-      const animationLoader = new FBXLoader(this._loadingManager);
-      animationLoader.setPath(this._params.path);
-      this._params.files.animations.forEach((animation) => {
-        animationLoader.load(animation.file, (a) => {
-          const clip = a.animations[0];
-          const action = this.mixer?.clipAction(clip);
+        const animationLoader = new FBXLoader(this._loadingManager);
+        animationLoader.setPath(this._params.path);
+        this._params.files.animations.forEach((animation) => {
+          animationLoader.load(animation.file, (a) => {
+            const clip = a.animations[0];
+            const action = this.mixer?.clipAction(clip);
 
-          if (clip && action) {
-            this.animations[animation.action] = {
-              clip,
-              action,
-            };
-          }
+            if (clip && action) {
+              this.animations[animation.action] = {
+                clip,
+                action,
+              };
+            }
+          });
         });
-      });
+      }
     });
   }
 

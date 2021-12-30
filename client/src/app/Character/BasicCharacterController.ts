@@ -18,7 +18,7 @@ export class BasicCharacterController extends Component {
     this._input = new BasicCharacterControllerInput();
 
     this._deccel = new Vector3(-0.0005, -0.0001, -5.0);
-    this._accel = new Vector3(1, 0.25, 50.0);
+    this._accel = new Vector3(1, 0.25, 200.0);
     this._velocity = new Vector3(0, 0, 0);
   }
 
@@ -57,6 +57,10 @@ export class BasicCharacterController extends Component {
       const newRotation = controlObject.quaternion.clone();
 
       const accel = this._accel.clone();
+
+      if (this._input.keys.shift) {
+        accel.multiplyScalar(2.0);
+      }
 
       if (this._input.keys.forward) {
         velocity.z += accel.z * timeElapsed;
@@ -117,12 +121,15 @@ export class BasicCharacterControllerInput {
       space: false,
       shift: false,
     };
+
     document.addEventListener("keydown", (e) => this._onKeyDown(e), false);
     document.addEventListener("keyup", (e) => this._onKeyUp(e), false);
   }
 
   private _onKeyDown(event: KeyboardEvent) {
-    switch (event.key) {
+    const lowerCaseKey = event.key.toLowerCase();
+
+    switch (lowerCaseKey) {
       case "w": // w
         this.keys.forward = true;
         break;
@@ -135,17 +142,18 @@ export class BasicCharacterControllerInput {
       case "d": // d
         this.keys.right = true;
         break;
-      case "Space": // SPACE
+      case "space": // SPACE
         this.keys.space = true;
         break;
-      case "Shift": // SHIFT
+      case "shift": // SHIFT
         this.keys.shift = true;
         break;
     }
   }
 
   private _onKeyUp(event: KeyboardEvent) {
-    switch (event.key) {
+    const lowerCaseKey = event.key.toLowerCase();
+    switch (lowerCaseKey) {
       case "w": // w
         this.keys.forward = false;
         break;
@@ -158,10 +166,10 @@ export class BasicCharacterControllerInput {
       case "d": // d
         this.keys.right = false;
         break;
-      case "Space": // SPACE
+      case "space": // SPACE
         this.keys.space = false;
         break;
-      case "Shift": // SHIFT
+      case "shift": // SHIFT
         this.keys.shift = false;
         break;
     }
@@ -226,6 +234,7 @@ class CharacterFSM extends FiniteStateMachine {
   private _init() {
     this.addState("idle", IdleState);
     this.addState("walk", WalkState);
+    this.addState("run", RunState);
   }
 }
 
@@ -296,6 +305,50 @@ class WalkState extends State {
       currentAction.play();
     }
   }
+  onUpdate(_: any, input: BasicCharacterControllerInput): void {
+    if (input.keys.forward || input.keys.backward) {
+      if (input.keys.shift) {
+        this.fsm.setState("run");
+      }
+      return;
+    }
+    this.fsm.setState("idle");
+  }
+}
+
+class RunState extends State {
+  constructor(public fsm: CharacterFSM) {
+    super(fsm);
+  }
+
+  get name(): string {
+    return "run";
+  }
+
+  onEnter(prevState: State | null): void {
+    const fbxComponent =
+      this.fsm.entity.getComponent<FBXComponent>("FBXComponent");
+    if (fbxComponent) {
+      const currentAction = fbxComponent.animations["run"].action;
+      if (prevState) {
+        const prevAction = fbxComponent.animations[prevState.name].action;
+        currentAction.enabled = true;
+        if (prevState.name === "walk") {
+          const ratio =
+            currentAction.getClip().duration / prevAction.getClip().duration;
+          currentAction.time = prevAction.time * ratio;
+        } else {
+          currentAction.time = 0.0;
+          currentAction.setEffectiveTimeScale(1.0);
+          currentAction.setEffectiveWeight(1.0);
+        }
+
+        currentAction.crossFadeFrom(prevAction, 0.5, true);
+      }
+      currentAction.play();
+    }
+  }
+
   onUpdate(_: any, input: BasicCharacterControllerInput): void {
     if (input.keys.forward || input.keys.backward) {
       if (!input.keys.shift) {

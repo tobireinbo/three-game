@@ -23,16 +23,16 @@ export class Application {
 
     const WORLD = new Entity();
     this.entityManager.add(WORLD, "world");
-    WORLD.addComponent(new ThreeController(this.wrapper));
+    const three = new ThreeController(this.wrapper);
+    WORLD.addComponent(three);
 
     const Character = new Entity();
     this.entityManager.add(Character, "char");
-    const three = WORLD.getComponent<ThreeController>("ThreeController");
     if (three?.scene) {
       Character.addComponent(
         new FBXComponent({
           scene: three.scene,
-          scale: 1,
+          scale: 0.5,
           path: "models/",
           files: {
             model: "michelle.fbx",
@@ -40,7 +40,7 @@ export class Application {
               { action: "dance", file: "Defeated.fbx" },
               { action: "idle", file: "Idle.fbx" },
               { action: "walk", file: "Walking.fbx" },
-              { action: "run", file: "Slow Run.fbx" },
+              { action: "run", file: "Run.fbx" },
             ],
           },
           offset: new Vector3(0, 0, 0),

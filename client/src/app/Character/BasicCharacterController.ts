@@ -18,7 +18,7 @@ export class BasicCharacterController extends Component {
     this._input = new BasicCharacterControllerInput();
 
     this._deccel = new Vector3(-0.0005, -0.0001, -5.0);
-    this._accel = new Vector3(1, 0.25, 200.0);
+    this._accel = new Vector3(1, 0.25, 100.0);
     this._velocity = new Vector3(0, 0, 0);
   }
 

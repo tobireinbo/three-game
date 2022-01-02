@@ -27,7 +27,7 @@ export class EntityManager {
     return this._entities.filter(cb);
   }
 
-  add(entity: Entity, name: any) {
+  add(entity: Entity, name?: string) {
     if (!name) {
       name = this._generateName();
     }

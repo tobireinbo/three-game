@@ -35,7 +35,7 @@ export class Application {
       const WORLD = new Entity();
       const three = new ThreeController(this.wrapper, physics);
       WORLD.addComponent(three);
-      this.entityManager.add(WORLD, "world");
+      this.entityManager.add(WORLD);
 
       const CHARACTER = new Entity();
       if (three?.scene) {
@@ -64,7 +64,7 @@ export class Application {
         CHARACTER.addComponent(new BirdCamera({ camera: three.camera }));
       }
       CHARACTER.addComponent(new BasicCharacterController());
-      this.entityManager.add(CHARACTER, "char");
+      this.entityManager.add(CHARACTER);
 
       this.animate();
     });
@@ -77,7 +77,7 @@ export class Application {
       }
 
       const deltaTime = Math.min(
-        1.0 / 30.0,
+        1.0 / 60.0,
         time - this._prevAnimationFrameTime * 0.001
       );
       this.entityManager?.update(deltaTime);

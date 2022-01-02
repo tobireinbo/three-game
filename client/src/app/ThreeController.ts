@@ -3,6 +3,7 @@ import {
   BoxBufferGeometry,
   BoxGeometry,
   DirectionalLight,
+  DirectionalLightHelper,
   HemisphereLight,
   Mesh,
   MeshPhongMaterial,
@@ -10,6 +11,8 @@ import {
   PCFSoftShadowMap,
   PerspectiveCamera,
   PlaneGeometry,
+  PointLight,
+  PointLightHelper,
   Scene,
   sRGBEncoding,
   Vector2,
@@ -76,19 +79,14 @@ export class ThreeController extends Component {
     this.scene = new Scene();
 
     //LIGHTS
-    const light = new DirectionalLight(0x8088b3, 1);
-    light.position.set(-10, 50, 10);
-    light.target.position.set(0, 0, 0);
+    const light = new PointLight(0x8088b3, 1);
+    light.position.set(0, 100, 0);
     light.castShadow = true;
     light.shadow.bias = -0.001;
     light.shadow.mapSize.width = 4096;
     light.shadow.mapSize.height = 4096;
     light.shadow.camera.near = 0.1;
     light.shadow.camera.far = 10000.0;
-    light.shadow.camera.left = 100;
-    light.shadow.camera.right = -100;
-    light.shadow.camera.top = 100;
-    light.shadow.camera.bottom = -100;
 
     const ambientLight = new AmbientLight(0xffffff, 0.2);
 
@@ -119,7 +117,7 @@ export class ThreeController extends Component {
       const box = new Mesh(boxGeo, boxMat);
       box.receiveShadow = true;
       box.castShadow = true;
-      box.position.set(Math.floor(Math.random() * 100), 30, i * 50 * 2);
+      box.position.set(Math.floor(Math.random() * 100), 25, i * 50 * 2);
       this.addObject(box);
     }
 
@@ -129,8 +127,6 @@ export class ThreeController extends Component {
       window.innerWidth,
       window.innerHeight
     ).divideScalar(2.0);
-    renderResolution.x |= 0;
-    renderResolution.y |= 0;
     this.composer.addPass(
       new RenderPixelatedPass(renderResolution, this.scene, this.camera)
     );

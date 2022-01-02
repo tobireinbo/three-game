@@ -9,10 +9,10 @@ export class BirdCamera extends Component {
 
   onAddEntity(): void {
     this._lookat = new Vector3();
-    this._params.camera.position.setY(90);
+    this._params.camera.position.setY(80);
   }
 
-  onUpdate(timeElapsed: number, lerpFactor: number): void {
+  onUpdate(): void {
     const lookat = this.entity?.position;
     const offset = new Vector3(-80, 0, 0);
 

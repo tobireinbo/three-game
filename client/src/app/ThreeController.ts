@@ -8,10 +8,13 @@ import {
   PlaneGeometry,
   Scene,
   sRGBEncoding,
+  Vector2,
   WebGLRenderer,
 } from "three";
 import { MapControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Component } from "../ecs/Component";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import RenderPixelatedPass from "./PixelPass";
 
 export class ThreeController extends Component {
   renderer: WebGLRenderer | undefined;
@@ -19,6 +22,7 @@ export class ThreeController extends Component {
   scene: Scene | undefined;
   ground: Mesh | undefined;
   controls: MapControls | undefined;
+  composer: EffectComposer | undefined;
 
   wrapperElement: HTMLElement;
 
@@ -68,7 +72,7 @@ export class ThreeController extends Component {
     light.shadow.camera.top = 100;
     light.shadow.camera.bottom = -100;
 
-    const hemiLight = new HemisphereLight(0xffffff, 0x444444, 0.5);
+    const hemiLight = new HemisphereLight(0xffffff, 0x444444, 0.8);
     hemiLight.position.set(0, 20, 0);
 
     this.scene.add(hemiLight);
@@ -83,6 +87,18 @@ export class ThreeController extends Component {
     this.ground.receiveShadow = true;
     this.scene.add(this.ground);
 
+    //EFFECT
+    this.composer = new EffectComposer(this.renderer);
+    let renderResolution = new Vector2(
+      window.innerWidth,
+      window.innerHeight
+    ).divideScalar(2);
+    renderResolution.x |= 0;
+    renderResolution.y |= 0;
+    this.composer.addPass(
+      new RenderPixelatedPass(renderResolution, this.scene, this.camera)
+    );
+
     window.addEventListener("resize", this._onResize);
   }
 
@@ -93,7 +109,8 @@ export class ThreeController extends Component {
   onUpdate(timeElapsed: number): void {
     if (this.renderer && this.scene && this.camera) {
       this.controls?.update();
-      this.renderer?.render(this.scene, this.camera);
+      this.composer?.render();
+      //this.renderer?.render(this.scene, this.camera);
     }
   }
 }

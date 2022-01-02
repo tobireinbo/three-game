@@ -6,7 +6,7 @@ export class InputComponent extends Component {
     super();
   }
 
-  onAddComponent(): void {
+  onAddEntity(): void {
     console.log(this.entity);
     window.addEventListener("keydown", this._onKeyDown);
     window.addEventListener("keyup", this._onKeyUp);

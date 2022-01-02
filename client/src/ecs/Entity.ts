@@ -123,9 +123,9 @@ export class Entity {
     return this._rotation;
   }
 
-  onUpdate(timeElapsed: number) {
+  onUpdate(timeElapsed: number, lerpFactor: number) {
     for (let key in this._components) {
-      this._components[key].onUpdate(timeElapsed);
+      this._components[key].onUpdate(timeElapsed, lerpFactor);
     }
   }
 

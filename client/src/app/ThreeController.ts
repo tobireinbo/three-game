@@ -1,10 +1,12 @@
 import {
   AmbientLight,
   BoxBufferGeometry,
+  BoxGeometry,
   DirectionalLight,
   HemisphereLight,
   Mesh,
   MeshPhongMaterial,
+  Object3D,
   PCFSoftShadowMap,
   PerspectiveCamera,
   PlaneGeometry,
@@ -13,7 +15,7 @@ import {
   Vector2,
   WebGLRenderer,
 } from "three";
-import { MapControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Component } from "../ecs/Component";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import RenderPixelatedPass from "./PixelPass";
@@ -23,19 +25,31 @@ export class ThreeController extends Component {
   camera: PerspectiveCamera | undefined;
   scene: Scene | undefined;
   ground: Mesh | undefined;
-  controls: MapControls | undefined;
+  controls: OrbitControls | undefined;
   composer: EffectComposer | undefined;
+
+  physics?: any;
+  objects: any[];
 
   wrapperElement: HTMLElement;
 
-  constructor(mountToElement: HTMLElement) {
+  constructor(mountToElement: HTMLElement, physics?: any) {
     super();
 
+    this.physics = physics;
     this.wrapperElement = mountToElement;
+    this.objects = [];
   }
 
-  onAddComponent(): void {
+  onAddEntity(): void {
+    this._initThree();
+  }
+
+  private _initThree() {
     console.log("init");
+
+    console.log(this.physics);
+
     //RENDERER
     this.renderer = new WebGLRenderer({ antialias: false });
     this.renderer.outputEncoding = sRGBEncoding;
@@ -54,12 +68,15 @@ export class ThreeController extends Component {
     const far = 10000.0;
 
     this.camera = new PerspectiveCamera(fov, aspect, near, far);
+    this.camera.position.set(50, 50, 50);
+
+    //this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
     //SCENE
     this.scene = new Scene();
 
     //LIGHTS
-    const light = new DirectionalLight(0x8088b3, 0.7);
+    const light = new DirectionalLight(0x8088b3, 1);
     light.position.set(-10, 50, 10);
     light.target.position.set(0, 0, 0);
     light.castShadow = true;
@@ -84,15 +101,16 @@ export class ThreeController extends Component {
 
     //GROUND
     this.ground = new Mesh(
-      new PlaneGeometry(1000, 1000),
+      new BoxGeometry(1000, 1, 1000),
       new MeshPhongMaterial({ color: "#ff9100", depthWrite: false })
     );
-    this.ground.rotation.x = -Math.PI / 2;
+    //this.ground.rotation.x = -Math.PI / 2;
     this.ground.receiveShadow = true;
     this.scene.add(this.ground);
+    this.physics?.addMesh(this.ground);
 
     //BOXES
-    const boxGeo = new BoxBufferGeometry(50, 50, 50);
+    const boxGeo = new BoxGeometry(50, 50, 50);
     const boxMat = new MeshPhongMaterial({
       color: "#ff0000",
       depthWrite: false,
@@ -101,8 +119,8 @@ export class ThreeController extends Component {
       const box = new Mesh(boxGeo, boxMat);
       box.receiveShadow = true;
       box.castShadow = true;
-      box.position.set(Math.floor(Math.random() * 100), 25, i * 50 * 2);
-      this.scene.add(box);
+      box.position.set(Math.floor(Math.random() * 100), 30, i * 50 * 2);
+      this.addObject(box);
     }
 
     //EFFECT
@@ -110,9 +128,9 @@ export class ThreeController extends Component {
     let renderResolution = new Vector2(
       window.innerWidth,
       window.innerHeight
-    ).divideScalar(3.0);
-    //renderResolution.x |= 0;
-    //renderResolution.y |= 0;
+    ).divideScalar(2.0);
+    renderResolution.x |= 0;
+    renderResolution.y |= 0;
     this.composer.addPass(
       new RenderPixelatedPass(renderResolution, this.scene, this.camera)
     );
@@ -121,7 +139,14 @@ export class ThreeController extends Component {
   }
 
   private _onResize() {
-    this.renderer?.setSize(window.innerWidth, window.innerHeight);
+    console.log("resized");
+    this.composer?.setSize(window.innerWidth, window.innerHeight);
+  }
+
+  addObject(object: Object3D) {
+    console.log("physcis on add", this.physics);
+    this.scene?.add(object);
+    this.physics?.addMesh(object, 1);
   }
 
   onUpdate(timeElapsed: number): void {

@@ -12,20 +12,17 @@ export class ThirdPersonCamera extends Component {
     super();
   }
 
-  onAddComponent(): void {
+  onAddEntity(): void {
     this._currentPosition = new Vector3();
     this._currentLookAt = new Vector3();
   }
 
-  onUpdate(timeElapsed: number): void {
+  onUpdate(timeElapsed: number, slerpFactor: number): void {
     const idealOffset = this._calcIdeal(new Vector3(-15, 20, -30));
     const idealLookat = this._calcIdeal(new Vector3(0, 10, 50));
 
-    //framerate independet slerp factor
-    const t = 1.0 - Math.pow(0.001, timeElapsed);
-
-    this._currentPosition?.lerp(idealOffset, t);
-    this._currentLookAt?.lerp(idealLookat, t);
+    this._currentPosition?.lerp(idealOffset, slerpFactor);
+    this._currentLookAt?.lerp(idealLookat, slerpFactor);
 
     if (this._currentPosition) {
       this._params.camera.position.copy(this._currentPosition);

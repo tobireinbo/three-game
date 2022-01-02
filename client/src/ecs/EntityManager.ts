@@ -38,8 +38,6 @@ export class EntityManager {
     entity.setEntityManager(this);
     entity.setName(name);
     entity.onAddEntity();
-
-    console.log(this._entitiesMap);
   }
 
   setActive(entity: Entity, b: unknown) {
@@ -61,12 +59,14 @@ export class EntityManager {
   }
 
   update(timeElapsed: number) {
+    const lerpFactor = 1.0 - Math.pow(0.001, timeElapsed);
+
     const dead = [];
     const alive = [];
     for (let index = 0; index < this._entities.length; index++) {
       const entity = this._entities[index];
 
-      entity.onUpdate(timeElapsed);
+      entity.onUpdate(timeElapsed, lerpFactor);
 
       if (entity.dead) {
         dead.push(entity);

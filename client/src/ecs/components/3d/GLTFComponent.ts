@@ -20,7 +20,7 @@ export class GLTFComponent extends Component {
     this._params = params;
   }
 
-  onAddComponent(): void {
+  onAddEntity(): void {
     this._loadModel();
     this.registerHandler(Topics.updatePosition, (value: Vector3) =>
       this._object?.position.copy(value)

@@ -34,7 +34,7 @@ export class Component {
 
   onDestroy(): void {}
 
-  onUpdate(timeElapsed: number): void {}
+  onUpdate(timeElapsed: number, lerpFactor: number): void {}
 
   onAddComponent(): void {}
 

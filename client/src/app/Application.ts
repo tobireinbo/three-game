@@ -3,8 +3,11 @@ import { FBXComponent } from "../ecs/components/3d/FBXComponent";
 import { Entity } from "../ecs/Entity";
 import { EntityManager } from "../ecs/EntityManager";
 import { BasicCharacterController } from "./Character/BasicCharacterController";
+import { BirdCamera } from "./Character/BirdCamera";
 import { ThirdPersonCamera } from "./Character/ThirdPersonCamera";
 import { ThreeController } from "./ThreeController";
+import { AmmoPhysics } from "three/examples/jsm/physics/AmmoPhysics.js";
+import { CubeComponent } from "./Character/CubeComponent";
 
 export class Application {
   wrapper: HTMLElement;
@@ -20,51 +23,51 @@ export class Application {
   }
 
   init() {
-    this.entityManager = new EntityManager();
+    //@ts-ignore
+    AmmoPhysics().then((physics) => {
+      console.log("physics", physics);
 
-    const WORLD = new Entity();
-    this.entityManager.add(WORLD, "world");
-    const three = new ThreeController(this.wrapper);
-    WORLD.addComponent(three);
-    if (three?.scene) {
-      WORLD.addComponent(
-        new FBXComponent({
-          scene: three.scene,
-          scale: 0.1,
-          path: "models",
-          files: { model: "Grass.fbx" },
-          offset: new Vector3(0, 0, 0),
-        })
-      );
-    }
+      //disable physics, since character controller is not coupled to physics
+      physics = undefined;
 
-    const CHARACTER = new Entity();
-    this.entityManager.add(CHARACTER, "char");
-    if (three?.scene) {
-      CHARACTER.addComponent(
-        new FBXComponent({
-          scene: three.scene,
-          scale: 0.2,
-          path: "models/",
-          files: {
-            model: "michelle.fbx",
-            animations: [
-              { action: "dance", file: "Defeated.fbx" },
-              { action: "idle", file: "Idle.fbx" },
-              { action: "walk", file: "Walking.fbx" },
-              { action: "run", file: "Run.fbx" },
-            ],
-          },
-          offset: new Vector3(0, 0, 0),
-        })
-      );
-    }
-    if (three?.camera) {
-      CHARACTER.addComponent(new ThirdPersonCamera({ camera: three.camera }));
-    }
-    CHARACTER.addComponent(new BasicCharacterController());
+      this.entityManager = new EntityManager();
 
-    this.animate();
+      const WORLD = new Entity();
+      const three = new ThreeController(this.wrapper, physics);
+      WORLD.addComponent(three);
+      this.entityManager.add(WORLD, "world");
+
+      const CHARACTER = new Entity();
+      if (three?.scene) {
+        CHARACTER.addComponent(
+          new FBXComponent({
+            add: (model) => {
+              console.log(model);
+              three.addObject(model);
+            },
+            scale: 0.2,
+            path: "models/",
+            files: {
+              model: "michelle.fbx",
+              animations: [
+                { action: "dance", file: "Defeated.fbx" },
+                { action: "idle", file: "Idle.fbx" },
+                { action: "walk", file: "Walking.fbx" },
+                { action: "run", file: "Run.fbx" },
+              ],
+            },
+            offset: new Vector3(0, 0, 0),
+          })
+        );
+      }
+      if (three?.camera) {
+        CHARACTER.addComponent(new BirdCamera({ camera: three.camera }));
+      }
+      CHARACTER.addComponent(new BasicCharacterController());
+      this.entityManager.add(CHARACTER, "char");
+
+      this.animate();
+    });
   }
 
   animate() {

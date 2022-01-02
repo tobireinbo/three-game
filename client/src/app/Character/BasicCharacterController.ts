@@ -22,7 +22,7 @@ export class BasicCharacterController extends Component {
     this._velocity = new Vector3(0, 0, 0);
   }
 
-  onAddComponent(): void {
+  onAddEntity(): void {
     if (this.entity) {
       this._stateMachine = new CharacterFSM(this.entity);
     }

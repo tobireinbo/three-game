@@ -15,8 +15,8 @@ export type FBXComponentParams = {
   path: string;
   files: { model: string; animations?: { action: string; file: string }[] };
   scale: number;
-  scene: Scene;
   offset: Vector3;
+  add: (model: Object3D) => void;
 };
 
 export class FBXComponent extends Component {
@@ -32,7 +32,7 @@ export class FBXComponent extends Component {
     this.animations = {};
   }
 
-  onAddComponent(): void {
+  onAddEntity(): void {
     this._loadModel();
 
     this.registerHandler(Topics.updatePosition, (pos) => {
@@ -52,7 +52,7 @@ export class FBXComponent extends Component {
       fbx.traverse((c) => (c.castShadow = true));
 
       this._model = fbx;
-      this._params.scene.add(this._model);
+      this._params.add(this._model);
 
       if (this._params.files.animations) {
         this.mixer = new AnimationMixer(this._model);

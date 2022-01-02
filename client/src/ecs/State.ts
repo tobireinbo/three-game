@@ -1,45 +1,61 @@
 import { KeyableObject } from "./common";
 
-export class State<T> {
-  private _value: T;
-  constructor(initValue: T, public onUpdate?: (timeElapsed: number) => void) {
-    this._value = initValue;
+export class StateMachine {
+  private _states: KeyableObject<typeof State>;
+  private _currentState: State | null;
+  constructor() {
+    this._states = {};
+    this._currentState = null;
   }
 
-  setState(value: T) {
-    this._value = value;
+  addState(name: string, type: typeof State) {
+    this._states[name] = type;
   }
 
-  get value() {
-    return this._value;
+  setState(name: string) {
+    const prevState = this._currentState;
+
+    if (prevState) {
+      if (prevState.name === name) {
+        return;
+      }
+      prevState.onExit();
+    }
+
+    /*
+    instantiate the state with name from states object
+    
+    Example:
+this.update(0)
+    
+    this._states = {
+      "walk": WalkState
+    }
+
+    given name in func is "walk"
+    -> const state = new WalkState(this)
+    */
+    const state = new (<any>this._states)[name](this);
+
+    this._currentState = state;
+    state.onEnter(prevState);
+  }
+
+  update(timeElapsed: number, ...data: Parameters<any>) {
+    if (this._currentState) {
+      this._currentState.onUpdate(timeElapsed, ...data);
+    }
   }
 }
 
-export class StateManager {
-  private _states: KeyableObject<State<any>>;
+export class State {
+  constructor(public stateMachine: StateMachine) {}
 
-  constructor() {
-    this._states = {};
+  get name() {
+    return "none";
   }
 
-  setState(key: string, value: any) {
-    if (!this._states[key]) {
-      this._states[key] = new State(value);
-    } else {
-      this._states[key].setState(value);
-    }
-  }
-
-  getState(key: string) {
-    return this._states[key].value;
-  }
-
-  update(timeElapsed: number) {
-    for (const key in this._states) {
-      const currentState = this._states[key];
-      if (currentState.onUpdate) {
-        currentState.onUpdate(timeElapsed);
-      }
-    }
-  }
+  onEnter(prevState: State | null) {}
+  onExit() {}
+  onUpdate(timeElapsed: number, ...params: Parameters<any>) {}
 }

@@ -1,12 +1,12 @@
-import { Object3D, Quaternion, Scene, Vector3 } from "three";
-import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
+import { Quaternion, Vector3 } from "three";
 import { KeyableObject, Topics } from "../../ecs/common";
 import { Component } from "../../ecs/Component";
 import { FBXComponent } from "../../ecs/components/3d/FBXComponent";
 import { Entity } from "../../ecs/Entity";
+import { StateMachine, State } from "../../ecs/State";
 
 export class BasicCharacterController extends Component {
-  private _stateMachine: FiniteStateMachine | undefined;
+  private _stateMachine: StateMachine | undefined;
   private _input: BasicCharacterControllerInput;
 
   private _deccel: Vector3;
@@ -176,55 +176,7 @@ export class BasicCharacterControllerInput {
   }
 }
 
-export class FiniteStateMachine {
-  private _states: KeyableObject<typeof State>; //obects stores names of classes
-  private _currentState: State | null;
-  constructor() {
-    this._states = {};
-    this._currentState = null;
-  }
-
-  addState(name: string, type: typeof State) {
-    this._states[name] = type;
-  }
-
-  setState(name: string) {
-    const prevState = this._currentState;
-
-    if (prevState) {
-      if (prevState.name === name) {
-        return;
-      }
-      prevState.onExit();
-    }
-
-    //instantiate the state with name from states object
-    const state = new (<any>this._states)[name](this);
-
-    this._currentState = state;
-    state.onEnter(prevState);
-  }
-
-  update(timeElapsed: number, input: BasicCharacterControllerInput) {
-    if (this._currentState) {
-      this._currentState.onUpdate(timeElapsed, input);
-    }
-  }
-}
-
-class State {
-  constructor(public fsm: FiniteStateMachine) {}
-
-  get name() {
-    return "none";
-  }
-
-  onEnter(...params: Parameters<any>) {}
-  onExit(...params: Parameters<any>) {}
-  onUpdate(...params: Parameters<any>) {}
-}
-
-class CharacterFSM extends FiniteStateMachine {
+class CharacterFSM extends StateMachine {
   constructor(public entity: Entity) {
     super();
 

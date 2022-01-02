@@ -3,6 +3,7 @@ import { FBXComponent } from "../ecs/components/3d/FBXComponent";
 import { Entity } from "../ecs/Entity";
 import { EntityManager } from "../ecs/EntityManager";
 import { BasicCharacterController } from "./Character/BasicCharacterController";
+import { ThirdPersonCamera } from "./Character/ThirdPersonCamera";
 import { ThreeController } from "./ThreeController";
 
 export class Application {
@@ -25,14 +26,25 @@ export class Application {
     this.entityManager.add(WORLD, "world");
     const three = new ThreeController(this.wrapper);
     WORLD.addComponent(three);
-
-    const Character = new Entity();
-    this.entityManager.add(Character, "char");
     if (three?.scene) {
-      Character.addComponent(
+      WORLD.addComponent(
         new FBXComponent({
           scene: three.scene,
-          scale: 0.5,
+          scale: 0.1,
+          path: "models",
+          files: { model: "Grass.fbx" },
+          offset: new Vector3(0, 0, 0),
+        })
+      );
+    }
+
+    const CHARACTER = new Entity();
+    this.entityManager.add(CHARACTER, "char");
+    if (three?.scene) {
+      CHARACTER.addComponent(
+        new FBXComponent({
+          scene: three.scene,
+          scale: 0.2,
           path: "models/",
           files: {
             model: "michelle.fbx",
@@ -47,7 +59,10 @@ export class Application {
         })
       );
     }
-    Character.addComponent(new BasicCharacterController());
+    if (three?.camera) {
+      CHARACTER.addComponent(new ThirdPersonCamera({ camera: three.camera }));
+    }
+    CHARACTER.addComponent(new BasicCharacterController());
 
     this.animate();
   }

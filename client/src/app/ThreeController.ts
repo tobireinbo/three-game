@@ -1,4 +1,6 @@
 import {
+  AmbientLight,
+  BoxBufferGeometry,
   DirectionalLight,
   HemisphereLight,
   Mesh,
@@ -52,29 +54,31 @@ export class ThreeController extends Component {
     const far = 10000.0;
 
     this.camera = new PerspectiveCamera(fov, aspect, near, far);
-    this.camera.position.set(0, 100, 100);
 
     //SCENE
     this.scene = new Scene();
 
     //LIGHTS
     const light = new DirectionalLight(0x8088b3, 0.7);
-    light.position.set(-10, 500, 10);
+    light.position.set(-10, 50, 10);
     light.target.position.set(0, 0, 0);
     light.castShadow = true;
     light.shadow.bias = -0.001;
     light.shadow.mapSize.width = 4096;
     light.shadow.mapSize.height = 4096;
     light.shadow.camera.near = 0.1;
-    light.shadow.camera.far = 1000.0;
+    light.shadow.camera.far = 10000.0;
     light.shadow.camera.left = 100;
     light.shadow.camera.right = -100;
     light.shadow.camera.top = 100;
     light.shadow.camera.bottom = -100;
 
+    const ambientLight = new AmbientLight(0xffffff, 0.2);
+
     const hemiLight = new HemisphereLight(0xffffff, 0x444444, 0.8);
     hemiLight.position.set(0, 20, 0);
 
+    this.scene.add(ambientLight);
     this.scene.add(hemiLight);
     this.scene.add(light);
 
@@ -87,14 +91,28 @@ export class ThreeController extends Component {
     this.ground.receiveShadow = true;
     this.scene.add(this.ground);
 
+    //BOXES
+    const boxGeo = new BoxBufferGeometry(50, 50, 50);
+    const boxMat = new MeshPhongMaterial({
+      color: "#ff0000",
+      depthWrite: false,
+    });
+    for (let i = 0; i < 5; i++) {
+      const box = new Mesh(boxGeo, boxMat);
+      box.receiveShadow = true;
+      box.castShadow = true;
+      box.position.set(Math.floor(Math.random() * 100), 25, i * 50 * 2);
+      this.scene.add(box);
+    }
+
     //EFFECT
     this.composer = new EffectComposer(this.renderer);
     let renderResolution = new Vector2(
       window.innerWidth,
       window.innerHeight
-    ).divideScalar(2);
-    renderResolution.x |= 0;
-    renderResolution.y |= 0;
+    ).divideScalar(3.0);
+    //renderResolution.x |= 0;
+    //renderResolution.y |= 0;
     this.composer.addPass(
       new RenderPixelatedPass(renderResolution, this.scene, this.camera)
     );

@@ -26,7 +26,7 @@ export class StateMachine {
     instantiate the state with name from states object
     
     Example:
-this.update(0)
+    this.update(0)
     
     this._states = {
       "walk": WalkState

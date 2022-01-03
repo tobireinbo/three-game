@@ -1,4 +1,4 @@
-import { Vector3 } from "three";
+import { Clock, Vector3 } from "three";
 import { FBXComponent } from "../ecs/components/3d/FBXComponent";
 import { Entity } from "../ecs/Entity";
 import { EntityManager } from "../ecs/EntityManager";
@@ -8,6 +8,8 @@ import { ThirdPersonCamera } from "./Character/ThirdPersonCamera";
 import { ThreeController } from "./ThreeController";
 import { AmmoPhysics } from "three/examples/jsm/physics/AmmoPhysics.js";
 import { CubeComponent } from "./Character/CubeComponent";
+import { SpatialHash_Fast } from "../ecs/SpatialHashGrid";
+import { SpatialGridController } from "../ecs/components/3d/SpatialGridController";
 
 export class Application {
   wrapper: HTMLElement;
@@ -30,6 +32,13 @@ export class Application {
       //disable physics, since character controller is not coupled to physics
       physics = undefined;
 
+      const grid = new SpatialHash_Fast(
+        [
+          [-1000, -1000],
+          [1000, 1000],
+        ],
+        [100, 100]
+      );
       this.entityManager = new EntityManager();
 
       const WORLD = new Entity();
@@ -38,33 +47,39 @@ export class Application {
       this.entityManager.add(WORLD);
 
       const CHARACTER = new Entity();
-      if (three?.scene) {
-        CHARACTER.addComponent(
-          new FBXComponent({
-            add: (model) => {
-              console.log(model);
-              three.addObject(model);
-            },
-            scale: 0.2,
-            path: "models/",
-            files: {
-              model: "michelle.fbx",
-              animations: [
-                { action: "dance", file: "Defeated.fbx" },
-                { action: "idle", file: "Idle.fbx" },
-                { action: "walk", file: "Walking.fbx" },
-                { action: "run", file: "Run.fbx" },
-              ],
-            },
-            offset: new Vector3(0, 0, 0),
-          })
-        );
-      }
+      CHARACTER.addComponent(
+        new FBXComponent({
+          add: (model) => {
+            console.log(model);
+            three.addObject(model);
+          },
+          scale: 0.2,
+          path: "models/",
+          files: {
+            model: "michelle.fbx",
+            animations: [
+              { action: "dance", file: "Defeated.fbx" },
+              { action: "idle", file: "Idle.fbx" },
+              { action: "walk", file: "Walking.fbx" },
+              { action: "run", file: "Run.fbx" },
+            ],
+          },
+          offset: new Vector3(0, 0, 0),
+        })
+      );
+      CHARACTER.addComponent(new SpatialGridController({ grid }));
       if (three?.camera) {
         CHARACTER.addComponent(new BirdCamera({ camera: three.camera }));
       }
       CHARACTER.addComponent(new BasicCharacterController());
       this.entityManager.add(CHARACTER);
+
+      const BOX = new Entity();
+      BOX.addComponent(
+        new CubeComponent({ add: (cube) => three.addObject(cube) })
+      );
+      BOX.addComponent(new SpatialGridController({ grid }));
+      this.entityManager.add(BOX, "BOX");
 
       this.animate();
     });

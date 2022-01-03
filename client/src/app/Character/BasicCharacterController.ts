@@ -2,10 +2,148 @@ import { Quaternion, Vector3 } from "three";
 import { KeyableObject, Topics } from "../../ecs/common";
 import { Component } from "../../ecs/Component";
 import { FBXComponent } from "../../ecs/components/3d/FBXComponent";
+import { SpatialGridController } from "../../ecs/components/3d/SpatialGridController";
 import { Entity } from "../../ecs/Entity";
 import { StateMachine, State } from "../../ecs/State";
 
 export class BasicCharacterController extends Component {
+  private _stateMachine: StateMachine | undefined;
+  private _input: BasicCharacterControllerInput;
+
+  private _deccel: Vector3;
+  private _accel: Vector3;
+  private _velocity: Vector3;
+  constructor() {
+    super();
+
+    this._input = new BasicCharacterControllerInput();
+
+    this._deccel = new Vector3(-0.0005, -0.0001, -5.0);
+    this._accel = new Vector3(1, 0.25, 100.0);
+    this._velocity = new Vector3(0, 0, 0);
+  }
+
+  onAddEntity(): void {
+    if (this.entity) {
+      this._stateMachine = new CharacterFSM(this.entity);
+    }
+
+    this.registerHandler(Topics.animationLoaded, (loaded) => {
+      if (loaded) {
+        this._stateMachine?.setState("idle");
+      }
+    });
+  }
+
+  private _findCollision(position: Vector3) {
+    const grid = this.getComponent<SpatialGridController>(
+      "SpatialGridController"
+    );
+
+    const nearby = grid?.findNearbyEntities(1);
+
+    if (nearby) {
+      for (let i = 0; i < nearby.length; ++i) {
+        const e: Entity = nearby[i].entity;
+        const d =
+          ((position.x - e.position.x) ** 2 +
+            (position.z - e.position.z) ** 2) **
+          0.5;
+
+        console.log(e);
+
+        //TODO: the desired distance should be taken from colliding entity
+        if (d <= 10) {
+          console.log("collision");
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  onUpdate(timeElapsed: number): void {
+    this._stateMachine?.update(timeElapsed, this._input);
+
+    const velocity = this._velocity;
+    const frameDeccel = new Vector3(
+      velocity.x * this._deccel.x,
+      velocity.y * this._deccel.y,
+      velocity.z * this._deccel.z
+    );
+    frameDeccel.multiplyScalar(timeElapsed);
+    frameDeccel.z =
+      Math.sign(frameDeccel.z) *
+      Math.min(Math.abs(frameDeccel.z), Math.abs(velocity.z));
+
+    velocity.add(frameDeccel);
+
+    const controlObject = this.entity;
+    if (controlObject) {
+      const rotationTarget = new Quaternion();
+      const axis = new Vector3();
+      const newRotation = controlObject.quaternion.clone();
+
+      const accel = this._accel.clone();
+
+      if (this._input.keys.shift) {
+        accel.multiplyScalar(2.0);
+      }
+
+      if (this._input.keys.forward) {
+        velocity.z += accel.z * timeElapsed;
+      }
+      if (this._input.keys.backward) {
+        velocity.z -= accel.z * timeElapsed;
+      }
+      if (this._input.keys.left) {
+        axis.set(0, 1, 0);
+        rotationTarget.setFromAxisAngle(
+          axis,
+          4.0 * Math.PI * timeElapsed * this._accel.y
+        );
+        newRotation.multiply(rotationTarget);
+      }
+      if (this._input.keys.right) {
+        axis.set(0, 1, 0);
+        rotationTarget.setFromAxisAngle(
+          axis,
+          4.0 * -Math.PI * timeElapsed * this._accel.y
+        );
+        newRotation.multiply(rotationTarget);
+      }
+
+      const forward = new Vector3(0, 0, 1);
+      forward.applyQuaternion(controlObject.quaternion);
+      forward.normalize();
+      forward.multiplyScalar(velocity.z * timeElapsed);
+
+      const sideways = new Vector3(1, 0, 0);
+      sideways.applyQuaternion(controlObject.quaternion);
+      sideways.normalize();
+      sideways.multiplyScalar(velocity.x * timeElapsed);
+
+      const position = controlObject.position.clone();
+      position.add(forward);
+      position.add(sideways);
+
+      if (this._findCollision(position)) {
+        this._input.keys.forward = false;
+        return;
+      }
+
+      controlObject.quaternion.copy(newRotation);
+      controlObject.position.copy(position);
+
+      position.copy(controlObject.position);
+
+      this.entity?.setPosition(controlObject.position);
+      this.entity?.setQuaternion(controlObject.quaternion);
+    }
+  }
+}
+
+export class PhysicsCharacterController extends Component {
   private _stateMachine: StateMachine | undefined;
   private _input: BasicCharacterControllerInput;
 

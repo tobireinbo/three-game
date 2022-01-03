@@ -39,12 +39,16 @@ export class CubeComponent extends Component {
   }
 
   private _loadModel() {
-    const boxGeo = new BoxGeometry(50, 50, 50);
+    const size = Math.floor(Math.random() * 100);
+    const boxGeo = new BoxGeometry(size, size, size);
     const boxMat = new MeshPhongMaterial({
       color: "#ff0000",
       depthWrite: false,
     });
     const box = new Mesh(boxGeo, boxMat);
+    box.position.setY(Math.floor(size / 2));
+    box.position.setZ(100);
+    this.entity?.setPosition(box.position);
     box.receiveShadow = true;
     box.castShadow = true;
 

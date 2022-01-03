@@ -1,18 +1,13 @@
 import {
   AmbientLight,
-  BoxBufferGeometry,
   BoxGeometry,
-  DirectionalLight,
-  DirectionalLightHelper,
   HemisphereLight,
   Mesh,
   MeshPhongMaterial,
   Object3D,
   PCFSoftShadowMap,
   PerspectiveCamera,
-  PlaneGeometry,
   PointLight,
-  PointLightHelper,
   Scene,
   sRGBEncoding,
   Vector2,
@@ -108,7 +103,7 @@ export class ThreeController extends Component {
     this.physics?.addMesh(this.ground);
 
     //BOXES
-    const boxGeo = new BoxGeometry(50, 50, 50);
+    /*const boxGeo = new BoxGeometry(50, 50, 50);
     const boxMat = new MeshPhongMaterial({
       color: "#ff0000",
       depthWrite: false,
@@ -119,7 +114,7 @@ export class ThreeController extends Component {
       box.castShadow = true;
       box.position.set(Math.floor(Math.random() * 100), 25, i * 50 * 2);
       this.addObject(box);
-    }
+    }*/
 
     //EFFECT
     this.composer = new EffectComposer(this.renderer);
@@ -127,6 +122,7 @@ export class ThreeController extends Component {
       window.innerWidth,
       window.innerHeight
     ).divideScalar(2.0);
+
     this.composer.addPass(
       new RenderPixelatedPass(renderResolution, this.scene, this.camera)
     );
@@ -135,12 +131,10 @@ export class ThreeController extends Component {
   }
 
   private _onResize() {
-    console.log("resized");
     this.composer?.setSize(window.innerWidth, window.innerHeight);
   }
 
   addObject(object: Object3D) {
-    console.log("physcis on add", this.physics);
     this.scene?.add(object);
     this.physics?.addMesh(object, 1);
   }

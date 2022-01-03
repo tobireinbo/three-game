@@ -15,7 +15,6 @@ export type FBXComponentParams = {
   path: string;
   files: { model: string; animations?: { action: string; file: string }[] };
   scale: number;
-  offset: Vector3;
   add: (model: Object3D) => void;
 };
 

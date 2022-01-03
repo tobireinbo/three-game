@@ -23,7 +23,6 @@ export class ThreeController extends Component {
   camera: PerspectiveCamera | undefined;
   scene: Scene | undefined;
   ground: Mesh | undefined;
-  controls: OrbitControls | undefined;
   composer: EffectComposer | undefined;
 
   physics?: any;
@@ -68,8 +67,6 @@ export class ThreeController extends Component {
     this.camera = new PerspectiveCamera(fov, aspect, near, far);
     this.camera.position.set(50, 50, 50);
 
-    //this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-
     //SCENE
     this.scene = new Scene();
 
@@ -97,31 +94,16 @@ export class ThreeController extends Component {
       new BoxGeometry(1000, 1, 1000),
       new MeshPhongMaterial({ color: "#ff9100", depthWrite: false })
     );
-    //this.ground.rotation.x = -Math.PI / 2;
     this.ground.receiveShadow = true;
     this.scene.add(this.ground);
     this.physics?.addMesh(this.ground);
-
-    //BOXES
-    /*const boxGeo = new BoxGeometry(50, 50, 50);
-    const boxMat = new MeshPhongMaterial({
-      color: "#ff0000",
-      depthWrite: false,
-    });
-    for (let i = 0; i < 5; i++) {
-      const box = new Mesh(boxGeo, boxMat);
-      box.receiveShadow = true;
-      box.castShadow = true;
-      box.position.set(Math.floor(Math.random() * 100), 25, i * 50 * 2);
-      this.addObject(box);
-    }*/
 
     //EFFECT
     this.composer = new EffectComposer(this.renderer);
     let renderResolution = new Vector2(
       window.innerWidth,
       window.innerHeight
-    ).divideScalar(2.0);
+    ).divideScalar(3.0);
 
     this.composer.addPass(
       new RenderPixelatedPass(renderResolution, this.scene, this.camera)
@@ -141,9 +123,7 @@ export class ThreeController extends Component {
 
   onUpdate(timeElapsed: number): void {
     if (this.renderer && this.scene && this.camera) {
-      this.controls?.update();
       this.composer?.render();
-      //this.renderer?.render(this.scene, this.camera);
     }
   }
 }

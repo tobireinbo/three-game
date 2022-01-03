@@ -35,6 +35,7 @@ export class BasicCharacterController extends Component {
     });
   }
 
+  //TODO: Use Box3 for collision
   private _findCollision(position: Vector3) {
     const grid = this.getComponent<SpatialGridController>(
       "SpatialGridController"

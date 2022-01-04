@@ -1,10 +1,11 @@
-import { Quaternion, Vector3 } from "three";
+import { Box3, Quaternion, Vector3 } from "three";
 import { KeyableObject, Topics } from "../../ecs/common";
 import { Component } from "../../ecs/Component";
 import { FBXComponent } from "../../ecs/components/3d/FBXComponent";
 import { SpatialGridController } from "../../ecs/components/3d/SpatialGridController";
 import { Entity } from "../../ecs/Entity";
 import { StateMachine, State } from "../../ecs/State";
+import { CollisionBoxComponent } from "./CollisionBoxComponent";
 
 export class BasicCharacterController extends Component {
   private _stateMachine: StateMachine | undefined;
@@ -35,28 +36,27 @@ export class BasicCharacterController extends Component {
     });
   }
 
-  //TODO: Use Box3 for collision
-  private _findCollision(position: Vector3) {
+  private _findCollision() {
     const grid = this.getComponent<SpatialGridController>(
       "SpatialGridController"
     );
+    const box = this.entity?.getComponent<CollisionBoxComponent>(
+      "CollisionBoxComponent"
+    )?.box;
+    const nearby = grid?.findNearbyEntities(5);
 
-    const nearby = grid?.findNearbyEntities(1);
-
-    if (nearby) {
+    if (nearby && box) {
       for (let i = 0; i < nearby.length; ++i) {
         const e: Entity = nearby[i].entity;
-        const d =
-          ((position.x - e.position.x) ** 2 +
-            (position.z - e.position.z) ** 2) **
-          0.5;
+        const currentBox = e.getComponent<CollisionBoxComponent>(
+          "CollisionBoxComponent"
+        )?.box;
 
-        console.log(e);
-
-        //TODO: the desired distance should be taken from colliding entity
-        if (d <= 10) {
-          console.log("collision");
-          return true;
+        if (currentBox) {
+          if (box.intersectsBox(currentBox)) {
+            console.log("collision");
+            return true;
+          }
         }
       }
     }
@@ -128,7 +128,7 @@ export class BasicCharacterController extends Component {
       position.add(forward);
       position.add(sideways);
 
-      if (this._findCollision(position)) {
+      if (this._findCollision()) {
         this._input.keys.forward = false;
         return;
       }

@@ -13,12 +13,11 @@ export class SpatialGridController extends Component {
 
   onAddComponent(): void {
     const position = [this.entity?.position.x, this.entity?.position.z];
-
     this._client = this._grid.NewClient(position, [1, 1]);
     this._client.entity = this.entity;
-    this.registerHandler(Topics.updatePosition, (value: Vector3) =>
-      this._onPosition(value)
-    );
+    this.registerHandler(Topics.updatePosition, (value: Vector3) => {
+      this._onPosition(value);
+    });
   }
 
   private _onPosition(value: Vector3) {

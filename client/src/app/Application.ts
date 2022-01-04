@@ -9,6 +9,7 @@ import { CubeComponent } from "./Character/CubeComponent";
 import { SpatialHash_Fast } from "../ecs/SpatialHashGrid";
 import { SpatialGridController } from "../ecs/components/3d/SpatialGridController";
 import { GLTFComponent } from "../ecs/components/3d/GLTFComponent";
+import { CollisionBoxComponent } from "./Character/CollisionBoxComponent";
 
 export class Application {
   wrapper: HTMLElement;
@@ -42,30 +43,45 @@ export class Application {
     BUSH.addComponent(
       new FBXComponent({
         add: (model) => {
+          BUSH.addComponent(
+            new CollisionBoxComponent({ target: model, scene: three.scene })
+          );
           three.addObject(model);
         },
+        offset: new Vector3(-100, 0, 0),
         scale: 0.1,
         path: "models/",
         files: { model: "Bush_1.fbx" },
       })
     );
-    this.entityManager.add(BUSH);
+    BUSH.addComponent(new SpatialGridController({ grid }));
+    this.entityManager.add(BUSH, "BUSH");
 
     const TREE = new Entity();
     TREE.addComponent(
       new FBXComponent({
-        add: (model) => three.addObject(model),
+        add: (model) => {
+          TREE.addComponent(
+            new CollisionBoxComponent({ target: model, scene: three.scene })
+          );
+          three.addObject(model);
+        },
         scale: 0.35,
+        offset: new Vector3(0, 0, -100),
         path: "models/",
         files: { model: "CommonTree_1.fbx" },
       })
     );
-    this.entityManager.add(TREE);
+    TREE.addComponent(new SpatialGridController({ grid }));
+    this.entityManager.add(TREE, "TREE");
 
     const CHARACTER = new Entity();
     CHARACTER.addComponent(
       new FBXComponent({
         add: (model) => {
+          CHARACTER.addComponent(
+            new CollisionBoxComponent({ target: model, scene: three.scene })
+          );
           three.addObject(model);
         },
         scale: 0.2,
@@ -81,6 +97,7 @@ export class Application {
         },
       })
     );
+
     CHARACTER.addComponent(new SpatialGridController({ grid }));
     if (three?.camera) {
       CHARACTER.addComponent(new BirdCamera({ camera: three.camera }));

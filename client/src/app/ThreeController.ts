@@ -87,7 +87,7 @@ export class ThreeController extends Component {
 
     this.scene.add(ambientLight);
     this.scene.add(hemiLight);
-    this.scene.add(light);
+    //this.scene.add(light);
 
     //GROUND
     this.ground = new Mesh(
@@ -103,7 +103,7 @@ export class ThreeController extends Component {
     let renderResolution = new Vector2(
       window.innerWidth,
       window.innerHeight
-    ).divideScalar(3.0);
+    ).divideScalar(2.2);
 
     this.composer.addPass(
       new RenderPixelatedPass(renderResolution, this.scene, this.camera)

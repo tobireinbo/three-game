@@ -15,6 +15,7 @@ export type FBXComponentParams = {
   path: string;
   files: { model: string; animations?: { action: string; file: string }[] };
   scale: number;
+  offset?: Vector3;
   add: (model: Object3D) => void;
 };
 
@@ -29,6 +30,10 @@ export class FBXComponent extends Component {
   constructor(private _params: FBXComponentParams) {
     super();
     this.animations = {};
+  }
+
+  get model() {
+    return this._model;
   }
 
   onAddEntity(): void {
@@ -52,6 +57,8 @@ export class FBXComponent extends Component {
 
       this._model = fbx;
       this._params.add(this._model);
+      this._params.offset && this._model.position.add(this._params.offset);
+      this.entity?.setPosition(this._model.position);
 
       if (this._params.files.animations) {
         this.mixer = new AnimationMixer(this._model);

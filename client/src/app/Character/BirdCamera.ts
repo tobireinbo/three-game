@@ -9,18 +9,20 @@ export class BirdCamera extends Component {
 
   onAddEntity(): void {
     this._lookat = new Vector3();
-    this._params.camera.position.setY(80);
   }
 
   onUpdate(): void {
     const lookat = this.entity?.position;
-    const offset = new Vector3(-80, 0, 0);
+    const offset = new Vector3(-60, 60, 0);
 
     if (lookat && this._lookat) {
       this._lookat?.copy(lookat);
       this._params.camera.lookAt(this._lookat);
-      this._params.camera.position.setZ(lookat.z + offset.z);
-      this._params.camera.position.setX(lookat.x + offset.x);
+      this._params.camera.position.set(
+        lookat.x + offset.x,
+        lookat.y + offset.y,
+        lookat.z + offset.z
+      );
     }
   }
 }

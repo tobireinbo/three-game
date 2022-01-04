@@ -1,6 +1,7 @@
 import {
   AmbientLight,
   BoxGeometry,
+  FogExp2,
   HemisphereLight,
   Mesh,
   MeshPhongMaterial,
@@ -61,7 +62,7 @@ export class ThreeController extends Component {
     const fov = 90;
     const aspect = window.innerWidth / window.innerHeight;
     const near = 1.0;
-    const far = 10000.0;
+    const far = 1000.0;
 
     this.camera = new PerspectiveCamera(fov, aspect, near, far);
     this.camera.position.set(50, 50, 50);
@@ -69,8 +70,11 @@ export class ThreeController extends Component {
     //SCENE
     this.scene = new Scene();
 
+    //FOG
+    this.scene.fog = new FogExp2(0xefd1b5, 0.0055);
+
     //LIGHTS
-    const light = new PointLight(0x8088b3, 1);
+    const light = new PointLight(0x8088b3, 0.5);
     light.position.set(0, 200, 0);
     light.castShadow = true;
     light.shadow.bias = -0.001;
@@ -90,8 +94,8 @@ export class ThreeController extends Component {
 
     //GROUND
     this.ground = new Mesh(
-      new BoxGeometry(1000, 1, 1000),
-      new MeshPhongMaterial({ color: "#ff9100", depthWrite: false })
+      new BoxGeometry(20000, 1, 20000),
+      new MeshPhongMaterial({ color: "#102300", depthWrite: false })
     );
     this.ground.receiveShadow = true;
     this.scene.add(this.ground);

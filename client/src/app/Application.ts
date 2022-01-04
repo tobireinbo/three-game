@@ -5,11 +5,10 @@ import { EntityManager } from "../ecs/EntityManager";
 import { BasicCharacterController } from "./Character/BasicCharacterController";
 import { BirdCamera } from "./Character/BirdCamera";
 import { ThreeController } from "./ThreeController";
-import { CubeComponent } from "./Character/CubeComponent";
 import { SpatialHash_Fast } from "../ecs/SpatialHashGrid";
 import { SpatialGridController } from "../ecs/components/3d/SpatialGridController";
-import { GLTFComponent } from "../ecs/components/3d/GLTFComponent";
 import { CollisionBoxComponent } from "./Character/CollisionBoxComponent";
+import { spawnAtRandom } from "../helper/spawner";
 
 export class Application {
   wrapper: HTMLElement;
@@ -43,19 +42,46 @@ export class Application {
     BUSH.addComponent(
       new FBXComponent({
         add: (model) => {
-          BUSH.addComponent(
-            new CollisionBoxComponent({ target: model, scene: three.scene })
+          spawnAtRandom(100, 300, [0.1, 0.4], model, (obj) =>
+            three.addObject(obj)
           );
-          three.addObject(model);
         },
-        offset: new Vector3(-100, 0, 0),
-        scale: 0.1,
+        scale: 0.5,
         path: "models/",
-        files: { model: "Bush_1.fbx" },
+        files: { model: "Plant_1.fbx" },
       })
     );
-    BUSH.addComponent(new SpatialGridController({ grid }));
     this.entityManager.add(BUSH, "BUSH");
+
+    const BUSH_2 = new Entity();
+    BUSH_2.addComponent(
+      new FBXComponent({
+        add: (model) => {
+          spawnAtRandom(100, 300, [0.05, 0.1], model, (obj) =>
+            three.addObject(obj)
+          );
+        },
+        scale: 0.2,
+        path: "models/",
+        files: { model: "Grass.fbx" },
+      })
+    );
+    this.entityManager.add(BUSH_2, "BUSH_2");
+
+    const BUSH_3 = new Entity();
+    BUSH_3.addComponent(
+      new FBXComponent({
+        add: (model) => {
+          spawnAtRandom(100, 300, [0.05, 0.1], model, (obj) =>
+            three.addObject(obj)
+          );
+        },
+        scale: 0.2,
+        path: "models/",
+        files: { model: "Plant_2.fbx" },
+      })
+    );
+    this.entityManager.add(BUSH_3, "BUSH_3");
 
     const TREE = new Entity();
     TREE.addComponent(

@@ -13,7 +13,7 @@ export class BirdCamera extends Component {
 
   onUpdate(): void {
     const lookat = this.entity?.position;
-    const offset = new Vector3(-60, 60, 0);
+    const offset = new Vector3(-60, 70, 0);
 
     if (lookat && this._lookat) {
       this._lookat?.copy(lookat);

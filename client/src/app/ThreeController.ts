@@ -13,7 +13,6 @@ import {
   Vector2,
   WebGLRenderer,
 } from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Component } from "../ecs/Component";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import RenderPixelatedPass from "./PixelPass";
@@ -72,7 +71,7 @@ export class ThreeController extends Component {
 
     //LIGHTS
     const light = new PointLight(0x8088b3, 1);
-    light.position.set(0, 100, 0);
+    light.position.set(0, 200, 0);
     light.castShadow = true;
     light.shadow.bias = -0.001;
     light.shadow.mapSize.width = 4096;
@@ -87,7 +86,7 @@ export class ThreeController extends Component {
 
     this.scene.add(ambientLight);
     this.scene.add(hemiLight);
-    //this.scene.add(light);
+    this.scene.add(light);
 
     //GROUND
     this.ground = new Mesh(
@@ -103,7 +102,7 @@ export class ThreeController extends Component {
     let renderResolution = new Vector2(
       window.innerWidth,
       window.innerHeight
-    ).divideScalar(2.2);
+    ).divideScalar(3);
 
     this.composer.addPass(
       new RenderPixelatedPass(renderResolution, this.scene, this.camera)

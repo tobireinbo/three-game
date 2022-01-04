@@ -128,15 +128,15 @@ export class BasicCharacterController extends Component {
       position.add(forward);
       position.add(sideways);
 
-      if (this._findCollision()) {
-        this._input.keys.forward = false;
-        return;
-      }
-
       controlObject.quaternion.copy(newRotation);
       controlObject.position.copy(position);
 
       position.copy(controlObject.position);
+
+      if (this._findCollision()) {
+        this._input.keys.forward = false;
+        return;
+      }
 
       this.entity?.setPosition(controlObject.position);
       this.entity?.setQuaternion(controlObject.quaternion);
@@ -326,6 +326,7 @@ class CharacterFSM extends StateMachine {
     this.addState("idle", IdleState);
     this.addState("walk", WalkState);
     this.addState("run", RunState);
+    this.addState("reverse", ReverseState);
   }
 }
 
@@ -356,10 +357,10 @@ class IdleState extends State {
   }
 
   onUpdate(_: any, input: BasicCharacterControllerInput): void {
-    if (input.keys.forward || input.keys.backward) {
+    if (input.keys.forward) {
       this.fsm.setState("walk");
-    } else if (input.keys.space) {
-      this.fsm.setState("dance");
+    } else if (input.keys.backward) {
+      this.fsm.setState("reverse");
     }
   }
 }
@@ -397,13 +398,55 @@ class WalkState extends State {
     }
   }
   onUpdate(_: any, input: BasicCharacterControllerInput): void {
-    if (input.keys.forward || input.keys.backward) {
+    if (input.keys.forward) {
       if (input.keys.shift) {
         this.fsm.setState("run");
       }
       return;
+    } else if (input.keys.backward) {
+      this.fsm.setState("reverse");
     }
     this.fsm.setState("idle");
+  }
+}
+
+class ReverseState extends State {
+  constructor(public fsm: CharacterFSM) {
+    super(fsm);
+  }
+
+  get name(): string {
+    return "reverse";
+  }
+
+  onEnter(prevState: State | null): void {
+    const fbxComponent =
+      this.fsm.entity.getComponent<FBXComponent>("FBXComponent");
+    if (fbxComponent) {
+      const currentAction = fbxComponent.animations["reverse"].action;
+      if (prevState) {
+        const prevAction = fbxComponent.animations[prevState.name].action;
+        currentAction.enabled = true;
+        if (prevState.name === "walk") {
+          const ratio =
+            currentAction.getClip().duration / prevAction.getClip().duration;
+          currentAction.time = prevAction.time * ratio;
+        } else {
+          currentAction.time = 0.0;
+          currentAction.setEffectiveTimeScale(1.0);
+          currentAction.setEffectiveWeight(1.0);
+        }
+
+        currentAction.crossFadeFrom(prevAction, 0.5, true);
+      }
+      currentAction.play();
+    }
+  }
+
+  onUpdate(_: any, input: BasicCharacterControllerInput): void {
+    if (!input.keys.backward) {
+      this.fsm.setState("idle");
+    }
   }
 }
 
@@ -441,11 +484,15 @@ class RunState extends State {
   }
 
   onUpdate(_: any, input: BasicCharacterControllerInput): void {
-    if (input.keys.forward || input.keys.backward) {
+    if (input.keys.forward) {
       if (!input.keys.shift) {
         this.fsm.setState("walk");
       }
       return;
+    } else if (input.keys.backward) {
+      if (!input.keys.shift) {
+        this.fsm.setState("reverse");
+      }
     }
     this.fsm.setState("idle");
   }

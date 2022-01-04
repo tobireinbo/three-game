@@ -89,14 +89,30 @@ export class Application {
         files: {
           model: "michelle.fbx",
           animations: [
-            { action: "dance", file: "Defeated.fbx" },
             { action: "idle", file: "Idle.fbx" },
             { action: "walk", file: "Walking.fbx" },
             { action: "run", file: "Run.fbx" },
+            { action: "reverse", file: "Walking Backwards.fbx" },
           ],
         },
       })
     );
+
+    /*
+    const BOX = new Entity();
+    BOX.addComponent(
+      new CubeComponent({
+        add: (cube) => {
+          BOX.addComponent(
+            new CollisionBoxComponent({ target: cube, scene: three.scene })
+          );
+          three.addObject(cube);
+        },
+      })
+    );
+    BOX.addComponent(new SpatialGridController({ grid }));
+    this.entityManager.add(BOX, "BOX");
+    */
 
     CHARACTER.addComponent(new SpatialGridController({ grid }));
     if (three?.camera) {
@@ -104,13 +120,6 @@ export class Application {
     }
     CHARACTER.addComponent(new BasicCharacterController());
     this.entityManager.add(CHARACTER);
-
-    const BOX = new Entity();
-    BOX.addComponent(
-      new CubeComponent({ add: (cube) => three.addObject(cube) })
-    );
-    BOX.addComponent(new SpatialGridController({ grid }));
-    this.entityManager.add(BOX, "BOX");
 
     this.animate();
   }
